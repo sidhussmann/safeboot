@@ -213,7 +213,7 @@ key-init() {
 		-outform "PEM" \
 		-out "$CERT" \
 		-days "3650" \
-		-sha256 \
+		-sha1 \
 	|| die "$KEY: unable to create"
 
 	# Create a certificate and public key file from the PEM
@@ -506,7 +506,7 @@ pcrs-sign() {
 
 	# If pre-computed PCRs are known, they can be used here instead
 	# TODO: allow PCRs to be passed in
-	tpm2 pcrread -o "$TMP/pcrs.bin" "sha256:$PCRS" \
+	tpm2 pcrread -o "$TMP/pcrs.bin" "sha1:$PCRS" \
 	|| die "Unable to read TPM PCRs"
 
 	# Check to see if the PCR4 matches the expected value
@@ -515,10 +515,10 @@ pcrs-sign() {
 	# with EFI_EV_SEPARATOR and then the PE hash of the EFI_BOOT_APPLICATION
 	linux_hash="$(sbsign.safeboot --hash-only "$linux" || die "unable to hash")"
 	ev_sep="$(echo "00000000" | hex2bin | tpm2_trial_extend 0)"
-	pcr4_computed="$(echo -n "${ev_sep}${linux_hash}" | hex2bin | sha256)"
+	pcr4_computed="$(echo -n "${ev_sep}${linux_hash}" | hex2bin | sha1)"
 
-	pcr2_read="$(tpm2 pcrread sha256:2 | tail -1 | cut -c9- | tr '[:upper:]' '[:lower:]')"
-	pcr4_read="$(tpm2 pcrread sha256:4 | tail -1 | cut -c9- | tr '[:upper:]' '[:lower:]')"
+	pcr2_read="$(tpm2 pcrread sha1:2 | tail -1 | cut -c9- | tr '[:upper:]' '[:lower:]')"
+	pcr4_read="$(tpm2 pcrread sha1:4 | tail -1 | cut -c9- | tr '[:upper:]' '[:lower:]')"
 
 	# HACK: this assumes PCR2 is the second in the list
 	if [ "$pcr2_read" != "$ev_sep" ]; then
@@ -568,7 +568,7 @@ pcrs-sign() {
 	tpm2_create_policy "$TMP/pcrs.bin" "$VERSION"
 
 	openssl dgst \
-		-sha256 \
+		-sha1 \
 		-sign "$KEY" \
 		${KEY_ENGINE:+ \
 			-keyform engine \
@@ -1045,7 +1045,7 @@ install-kernel() {
 	mv "$OUTDIR/linux.efi.new" "$OUTDIR/linux.efi" \
 	|| die "$OUTDIR/linux.efi: unable to install new image"
 
-	sha256sum "$OUTDIR/linux.efi"
+	sha1sum "$OUTDIR/linux.efi"
 }
 
 ########################################

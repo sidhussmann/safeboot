@@ -42,6 +42,7 @@ if [ -r "$DIR/local.conf" ]; then
 fi
 
 # Programs required to unseal the secrets and decrypt the disk
+copy_exec /usr/bin/sha1sum
 copy_exec /usr/bin/sha256sum
 copy_exec /usr/sbin/tpm2-totp
 copy_exec /usr/sbin/tpm2

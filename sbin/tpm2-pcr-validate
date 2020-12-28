@@ -20,7 +20,7 @@ if len(sys.argv) <= 1:
 	exit(-1)
 
 # hard code the algorithm
-alg = 'sha256'
+alg = 'sha1'
 
 with open(sys.argv[1]) as f:
 	pcrs = load(f, Loader=Loader)["pcrs"][alg]

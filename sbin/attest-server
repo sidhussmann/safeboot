@@ -11,7 +11,7 @@ import subprocess
 import yaml
 
 # hard code the hashing algorithm used
-alg = 'sha256'
+alg = 'sha1'
 secrets = {}
 
 # Check that all of the required PCRs are present and match the golden values.

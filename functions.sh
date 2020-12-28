@@ -53,7 +53,7 @@ mount_tmp() {
 
 hex2bin() { xxd -p -r ; }
 bin2hex() { xxd -p ; }
-sha256() { sha256sum - | cut -d' ' -f1 ; }
+sha1() { sha1sum - | cut -d' ' -f1 ; }
 
 ########################################
 #
@@ -97,8 +97,8 @@ tpm2_trial_extend() {
 		initial="$PCR_DEFAULT"
 	fi
 
-	newhash="$(sha256)"
-	printf "%s" "$initial$newhash" | hex2bin | sha256
+	newhash="$(sha1)"
+	printf "%s" "$initial$newhash" | hex2bin | sha1
 }
 
 #
@@ -106,8 +106,8 @@ tpm2_trial_extend() {
 #
 tpm2_extend() {
 	pcr="$1"
-	newhash="$(sha256)"
-	tpm2 pcrextend "$pcr:sha256=$newhash"
+	newhash="$(sha1)"
+	tpm2 pcrextend "$pcr:sha1=$newhash"
 }
 
 
@@ -160,7 +160,7 @@ tpm2_create_policy()
 
 	tpm2 policypcr \
 		--session "$TMP/session.ctx" \
-		--pcr-list "sha256:$PCRS,$BOOTMODE_PCR" \
+		--pcr-list "sha1:$PCRS,$BOOTMODE_PCR" \
 		${PCR_FILE:+ --pcr "$PCR_FILE" } \
 		--policy "$TMP/pcr.policy" \
 		>> /tmp/tpm.log \
@@ -186,7 +186,7 @@ tpm2_create_policy()
 
 	if [ -n "$TPM_POLICY_SIG" ]; then
 		tpm2 verifysignature \
-			--hash-algorithm sha256 \
+			--hash-algorithm sha1 \
 			--scheme rsassa \
 			--key-context "$TMP/key.ctx" \
 			--message "$TMP/pcr.policy" \

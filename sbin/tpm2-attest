@@ -147,7 +147,7 @@ quote()
 	# because why would you want useful names with tpm2-tools?
 	warn "tpm2: reading endorsement certificate"
 	if tpm2 nvread -o "$TMP/ek.crt" 0x01c00002 ; then
-		sha256sum "$TMP/ek.crt" >&2
+		sha1sum "$TMP/ek.crt" >&2
 		openssl x509 >&2 \
 			-inform "DER"  \
 			-in "$TMP/ek.crt" \
@@ -213,7 +213,7 @@ quote()
 	|| die "tpm2_load: unable to load attestation key"
 
 	# read the public component so that the name can be
-	# computed with sha256
+	# computed with sha1
 	tpm2 readpublic >&2 \
 		--object-context "ak.ctx" \
 		--output "$TMP/ak.pub" \
@@ -228,7 +228,7 @@ quote()
 	warn "tpm2: generating quote"
 	tpm2 quote >&2 \
 		--key-context "ak.ctx" \
-		--pcr-list "sha256:$QUOTE_PCRS" \
+		--pcr-list "sha1:$QUOTE_PCRS" \
 		--qualification "$QUOTE_NONCE" \
 		--message "$TMP/quote.out" \
 		--signature "$TMP/quote.sig" \
@@ -616,7 +616,7 @@ quote-verify()
 	unpack-quote "$QUOTE_TAR" \
 	|| die "$QUOTE_TAR: unable to unpack"
 	
-	echo "ekhash: $(sha256 < "$TMP/ek.pub")"
+	echo "ekhash: $(sha1 < "$TMP/ek.pub")"
 
 	tpm2 print \
 		-t "TPMS_ATTEST" \
@@ -707,7 +707,7 @@ seal()
 	# convert the attestation key into a "name"
 	# so that the TPM will only decrypt if it matches an
 	# active attestation key in that device.
-	AK_NAME="000b$(sha256 < "$TMP/ak.pub")"
+	AK_NAME="000b$(sha1 < "$TMP/ak.pub")"
 
 	warn "tpm2: making credential: $AK_NAME"
 	tpm2 makecredential \
@@ -901,7 +901,7 @@ EOF
 	openssl req \
 		-batch \
 		-new \
-		-sha256 \
+		-sha1 \
 		-subj "$SUBJECT" \
 		-passout pass:1234 \
 		-keyout /dev/null \
@@ -933,7 +933,7 @@ EOF
 		-extfile "$TMP/csr.config" \
 		-extensions v3_req \
 		-days 3652 \
-		-sha256 \
+		-sha1 \
 		-outform DER \
 		-out "$CRT" \
 	|| die "$EK: signing failed"
@@ -1039,7 +1039,7 @@ ek-crt()
 		die "TPM NVRAM does not match imported cert"
 	fi
 
-	sha256sum "$TMP/ek.crt"
+	sha1sum "$TMP/ek.crt"
 }
 
 
